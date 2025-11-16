@@ -1,11 +1,11 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const contenedorController = require('../controllers/contenedorController');
+const contenedoresController = require("../controllers/contenedores.controller");
 
-router.get('/', contenedorController.listarContenedores);
-router.get('/:id', contenedorController.obtenerContenedorPorId);
-router.post('/', contenedorController.crearContenedor);
-router.put('/:id', contenedorController.actualizarContenedor);
-router.delete('/:id', contenedorController.eliminarContenedor);
+router.get("/", contenedoresController.listar);
+router.get("/:id", contenedoresController.obtenerPorId);
+router.post("/", contenedoresController.crear);
+router.put("/:id", contenedoresController.actualizar);
+router.delete("/:id", contenedoresController.eliminar);
 
 module.exports = router;
