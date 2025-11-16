@@ -1,7 +1,5 @@
 require('dotenv').config();
 
-console.log("ENV:", process.env.DB_PASSWORD);
-
 const app = require('./app');
 const db = require('./config/db');
 
