@@ -7,6 +7,7 @@ const movimientosRoutes = require("./routes/movimientos.routes");
 const clientesRoutes = require("./routes/clientes.routes");
 const productosRoutes = require("./routes/productos.routes");
 const lotesRoutes = require("./routes/lotes.routes");
+const embarcacionesRoutes = require("./routes/embarcaciones.routes")
 
 const reportesRoutes = require('./routes/reportes.routes');
 
@@ -20,6 +21,7 @@ app.use("/api/movimientos", movimientosRoutes);
 app.use("/api/clientes", clientesRoutes);
 app.use("/api/productos", productosRoutes);
 app.use("/api/lotes", lotesRoutes);
+app.use("/api/embarcaciones", embarcacionesRoutes);
 
 app.use('/api/reportes', reportesRoutes);
 
