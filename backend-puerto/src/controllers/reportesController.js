@@ -50,17 +50,24 @@ async function reporteConParametros(req, res, next, nombreSP, binds) {
   }
 }
 
-// Reportes sin parámetros
-async function reporte1(req, res, next) {
+// ============================================================
+// REPORTE 1: Contenedores activos con su último movimiento
+// ============================================================
+async function contenedoresActivos(req, res, next) {
   reporteGenerico(req, res, next, 'rep_contenedores_activos');
 }
 
-async function reporte2(req, res, next) {
+// ============================================================
+// REPORTE 2: Ranking de clientes según cantidad de contenedores
+// ============================================================
+async function rankingClientes(req, res, next) {
   reporteGenerico(req, res, next, 'rep_ranking_clientes');
 }
 
-// Reporte 3: CON parámetro "dias"
-async function reporte3(req, res, next) {
+// ============================================================
+// REPORTE 3: Contenedores que saldrán en X días (CON PARÁMETRO)
+// ============================================================
+async function contenedoresProximaSalida(req, res, next) {
   const dias = parseInt(req.query.dias) || 7; // Default: 7 días
   
   const binds = {
@@ -71,14 +78,20 @@ async function reporte3(req, res, next) {
   reporteConParametros(req, res, next, 'rep_contenedores_proxima_salida(:dias, :cursor_out)', binds);
 }
 
-async function reporte4(req, res, next) {
+// ============================================================
+// REPORTE 4: Productos más enviados del mes actual
+// ============================================================
+async function productosMensuales(req, res, next) {
   reporteGenerico(req, res, next, 'rep_productos_mensuales');
 }
 
-// Reporte 5: CON parámetro "id"
-async function reporte5(req, res, next) {
+// ============================================================
+// REPORTE 5: Historial completo de un contenedor (CON PARÁMETRO)
+// ============================================================
+async function historialContenedor(req, res, next) {
   const id = parseInt(req.params.id);
   
+  // Validar que el ID sea válido
   if (!id || isNaN(id)) {
     return res.status(400).json({
       ok: false,
@@ -94,35 +107,50 @@ async function reporte5(req, res, next) {
   reporteConParametros(req, res, next, 'rep_historial_contenedor(:id, :cursor_out)', binds);
 }
 
-async function reporte6(req, res, next) {
+// ============================================================
+// REPORTE 6: Embarcaciones con mayor cantidad de contenedores
+// ============================================================
+async function embarcacionesContenedores(req, res, next) {
   reporteGenerico(req, res, next, 'rep_embarcaciones_contenedores');
 }
 
-async function reporte7(req, res, next) {
+// ============================================================
+// REPORTE 7: Resumen del estado general del puerto
+// ============================================================
+async function estadoPuerto(req, res, next) {
   reporteGenerico(req, res, next, 'rep_estado_puerto');
 }
 
-async function reporte8(req, res, next) {
+// ============================================================
+// REPORTE 8: Contenedores sin movimientos (posibles abandonados)
+// ============================================================
+async function contenedoresAbandonados(req, res, next) {
   reporteGenerico(req, res, next, 'rep_contenedores_abandonados');
 }
 
-async function reporte9(req, res, next) {
+// ============================================================
+// REPORTE 9: Alertas activas con detalle completo
+// ============================================================
+async function alertasDetalle(req, res, next) {
   reporteGenerico(req, res, next, 'rep_alertas_detalle');
 }
 
-async function reporte10(req, res, next) {
+// ============================================================
+// REPORTE 10: Auditoría de usuarios (acciones por día)
+// ============================================================
+async function auditoriaUsuarios(req, res, next) {
   reporteGenerico(req, res, next, 'rep_auditoria_usuarios');
 }
 
 module.exports = {
-  reporte1,
-  reporte2,
-  reporte3,
-  reporte4,
-  reporte5,
-  reporte6,
-  reporte7,
-  reporte8,
-  reporte9,
-  reporte10
+  contenedoresActivos,
+  rankingClientes,
+  contenedoresProximaSalida,
+  productosMensuales,
+  historialContenedor,
+  embarcacionesContenedores,
+  estadoPuerto,
+  contenedoresAbandonados,
+  alertasDetalle,
+  auditoriaUsuarios
 };

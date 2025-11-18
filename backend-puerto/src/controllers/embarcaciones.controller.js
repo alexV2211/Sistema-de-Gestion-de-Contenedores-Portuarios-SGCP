@@ -1,55 +1,117 @@
-const embarcacionesService = require("../services/embarcaciones.service");
+const embarcacionesService = require('../services/embarcaciones.service');
 
-module.exports = {
-
-    listar: async (req, res) => {
-        try {
-            const data = await embarcacionesService.listar();
-            res.json(data);
-        } catch (err) {
-            res.status(500).json({ error: err.message });
-        }
-    },
-
-    obtenerPorId: async (req, res) => {
-        try {
-            const item = await embarcacionesService.obtenerPorId(req.params.id);
-
-            if (!item) {
-                return res.status(404).json({ message: "Embarcación no encontrada" });
-            }
-
-            res.json(item);
-        } catch (err) {
-            res.status(500).json({ error: err.message });
-        }
-    },
-
-    crear: async (req, res) => {
-        try {
-            const nuevo = await embarcacionesService.crear(req.body);
-            res.status(201).json(nuevo);
-        } catch (err) {
-            res.status(500).json({ error: err.message });
-        }
-    },
-
-    actualizar: async (req, res) => {
-        try {
-            const actualizado = await embarcacionesService.actualizar(req.params.id, req.body);
-            res.json(actualizado);
-        } catch (err) {
-            res.status(500).json({ error: err.message });
-        }
-    },
-
-    eliminar: async (req, res) => {
-        try {
-            await embarcacionesService.eliminar(req.params.id);
-            res.json({ message: "Embarcación eliminada" });
-        } catch (err) {
-            res.status(500).json({ error: err.message });
-        }
+class EmbarcacionesController {
+  
+  // GET /api/embarcaciones
+  async obtenerTodos(req, res, next) {
+    try {
+      const embarcaciones = await embarcacionesService.obtenerTodos();
+      res.json({
+        ok: true,
+        data: embarcaciones
+      });
+    } catch (error) {
+      next(error);
     }
+  }
 
-};
+  // GET /api/embarcaciones/:id
+  async obtenerPorId(req, res, next) {
+    try {
+      const { id } = req.params;
+      const embarcacion = await embarcacionesService.obtenerPorId(id);
+      res.json({
+        ok: true,
+        data: embarcacion
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  // POST /api/embarcaciones
+  async crear(req, res, next) {
+    try {
+      const nuevaEmbarcacion = await embarcacionesService.crear(req.body);
+      res.status(201).json({
+        ok: true,
+        data: nuevaEmbarcacion,
+        mensaje: 'Embarcación creada exitosamente'
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  // PUT /api/embarcaciones/:id
+  async actualizar(req, res, next) {
+    try {
+      const { id } = req.params;
+      const embarcacionActualizada = await embarcacionesService.actualizar(id, req.body);
+      res.json({
+        ok: true,
+        data: embarcacionActualizada,
+        mensaje: 'Embarcación actualizada exitosamente'
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  // DELETE /api/embarcaciones/:id
+  async eliminar(req, res, next) {
+    try {
+      const { id } = req.params;
+      const resultado = await embarcacionesService.eliminar(id);
+      res.json({
+        ok: true,
+        mensaje: resultado.mensaje
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  // GET /api/embarcaciones/buscar/:nombre
+  async buscarPorNombre(req, res, next) {
+    try {
+      const { nombre } = req.params;
+      const embarcaciones = await embarcacionesService.buscarPorNombre(nombre);
+      res.json({
+        ok: true,
+        data: embarcaciones
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  // GET /api/embarcaciones/en-puerto
+  async obtenerEnPuerto(req, res, next) {
+    try {
+      const embarcaciones = await embarcacionesService.obtenerEnPuerto();
+      res.json({
+        ok: true,
+        data: embarcaciones
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  // GET /api/embarcaciones/:id/contenedores
+  async obtenerContenedores(req, res, next) {
+    try {
+      const { id } = req.params;
+      const contenedores = await embarcacionesService.obtenerContenedores(id);
+      res.json({
+        ok: true,
+        data: contenedores
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+}
+
+module.exports = new EmbarcacionesController();

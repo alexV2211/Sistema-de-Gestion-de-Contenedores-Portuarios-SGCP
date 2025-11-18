@@ -1,53 +1,104 @@
-const clientesService = require("../services/clientes.service");
+const clientesService = require('../services/clientes.service');
 
-module.exports = {
-
-    listar: async (req, res) => {
-        try {
-            const data = await clientesService.listar();
-            res.json(data);
-        } catch (error) {
-            res.status(500).json({ error: error.message });
-        }
-    },
-
-    obtenerPorId: async (req, res) => {
-        try {
-            const cliente = await clientesService.obtenerPorId(req.params.id);
-            if (!cliente) {
-                return res.status(404).json({ message: "Cliente no encontrado" });
-            }
-            res.json(cliente);
-        } catch (error) {
-            res.status(500).json({ error: error.message });
-        }
-    },
-
-    crear: async (req, res) => {
-        try {
-            const nuevo = await clientesService.crear(req.body);
-            res.status(201).json(nuevo);
-        } catch (error) {
-            res.status(500).json({ error: error.message });
-        }
-    },
-
-    actualizar: async (req, res) => {
-        try {
-            const actualizado = await clientesService.actualizar(req.params.id, req.body);
-            res.json(actualizado);
-        } catch (error) {
-            res.status(500).json({ error: error.message });
-        }
-    },
-
-    eliminar: async (req, res) => {
-        try {
-            await clientesService.eliminar(req.params.id);
-            res.json({ message: "Cliente eliminado" });
-        } catch (error) {
-            res.status(500).json({ error: error.message });
-        }
+class ClientesController {
+  
+  // GET /api/clientes
+  async obtenerTodos(req, res, next) {
+    try {
+      const clientes = await clientesService.obtenerTodos();
+      res.json({
+        ok: true,
+        data: clientes
+      });
+    } catch (error) {
+      next(error);
     }
+  }
 
-};
+  // GET /api/clientes/:id
+  async obtenerPorId(req, res, next) {
+    try {
+      const { id } = req.params;
+      const cliente = await clientesService.obtenerPorId(id);
+      res.json({
+        ok: true,
+        data: cliente
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  // POST /api/clientes
+  async crear(req, res, next) {
+    try {
+      const nuevoCliente = await clientesService.crear(req.body);
+      res.status(201).json({
+        ok: true,
+        data: nuevoCliente,
+        mensaje: 'Cliente creado exitosamente'
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  // PUT /api/clientes/:id
+  async actualizar(req, res, next) {
+    try {
+      const { id } = req.params;
+      const clienteActualizado = await clientesService.actualizar(id, req.body);
+      res.json({
+        ok: true,
+        data: clienteActualizado,
+        mensaje: 'Cliente actualizado exitosamente'
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  // DELETE /api/clientes/:id
+  async eliminar(req, res, next) {
+    try {
+      const { id } = req.params;
+      const resultado = await clientesService.eliminar(id);
+      res.json({
+        ok: true,
+        mensaje: resultado.mensaje
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  // GET /api/clientes/buscar/:nombre
+  async buscarPorNombre(req, res, next) {
+    try {
+      const { nombre } = req.params;
+      const clientes = await clientesService.buscarPorNombre(nombre);
+      res.json({
+        ok: true,
+        data: clientes
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  // GET /api/clientes/:id/contenedores
+  async obtenerContenedores(req, res, next) {
+    try {
+      const { id } = req.params;
+      const contenedores = await clientesService.obtenerContenedores(id);
+      res.json({
+        ok: true,
+        data: contenedores
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+}
+
+module.exports = new ClientesController();

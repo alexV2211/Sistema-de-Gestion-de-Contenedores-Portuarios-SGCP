@@ -2,18 +2,22 @@ const express = require('express');
 const router = express.Router();
 const reportesController = require('../controllers/reportesController');
 
+// ============================================================
+// RUTAS DE REPORTES CON NOMBRES DESCRIPTIVOS
+// ============================================================
+
 // Reportes sin parámetros
-router.get('/contenedores-activos', reportesController.reporte1);
-router.get('/ranking-clientes', reportesController.reporte2);
-router.get('/productos-mensuales', reportesController.reporte4);
-router.get('/embarcaciones-contenedores', reportesController.reporte6);
-router.get('/estado-puerto', reportesController.reporte7);
-router.get('/contenedores-abandonados', reportesController.reporte8);
-router.get('/alertas-detalle', reportesController.reporte9);
-router.get('/auditoria-usuarios', reportesController.reporte10);
+router.get('/contenedores-activos', reportesController.contenedoresActivos);
+router.get('/ranking-clientes', reportesController.rankingClientes);
+router.get('/productos-mensuales', reportesController.productosMensuales);
+router.get('/embarcaciones-contenedores', reportesController.embarcacionesContenedores);
+router.get('/estado-puerto', reportesController.estadoPuerto);
+router.get('/contenedores-abandonados', reportesController.contenedoresAbandonados);
+router.get('/alertas-detalle', reportesController.alertasDetalle);
+router.get('/auditoria-usuarios', reportesController.auditoriaUsuarios);
 
 // Reportes con parámetros
-router.get('/contenedores-proxima-salida', reportesController.reporte3);
-router.get('/historial-contenedor/:id', reportesController.reporte5);
+router.get('/contenedores-proxima-salida', reportesController.contenedoresProximaSalida); // ?dias=10
+router.get('/historial-contenedor/:id', reportesController.historialContenedor); // /:id
 
 module.exports = router;
