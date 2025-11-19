@@ -10,7 +10,7 @@ async function start() {
     await db.init();
 
     app.listen(PORT, () => {
-      console.log(`🚢 Backend puerto escuchando en http://localhost:${PORT}`);
+      console.log(`🚢 Backend puerto escuchando en http://localhost:${PORT}/api/health`);
     });
 
     process.on('SIGINT', async () => {

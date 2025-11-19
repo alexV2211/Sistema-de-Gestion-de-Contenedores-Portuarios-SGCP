@@ -15,7 +15,7 @@ async function reporteGenerico(req, res, next, nombreSP, paramName = 'cursor_out
     );
 
     const cursor = result.outBinds[paramName];
-    const rows = await cursor.getRows();
+    const rows = await cursor.getRows(1000); // Obtener hasta 1000 filas
     await cursor.close();
 
     res.json({
@@ -34,13 +34,32 @@ async function reporteConParametros(req, res, next, nombreSP, binds) {
   let connection;
   try {
     connection = await db.getConnection();
+    
+    // Log para debugging
+    console.log('Ejecutando:', nombreSP);
+    console.log('Binds:', JSON.stringify(binds, null, 2));
+    
     const result = await connection.execute(
       `BEGIN ${nombreSP}; END;`,
       binds
     );
 
-    const cursor = result.outBinds.cursor_out;
-    const rows = await cursor.getRows();
+    console.log('OutBinds keys:', Object.keys(result.outBinds));
+    
+    // Buscar el cursor en los outBinds (puede tener diferentes nombres)
+    const cursorKey = Object.keys(result.outBinds).find(key => 
+      result.outBinds[key] && typeof result.outBinds[key].getRows === 'function'
+    );
+    
+    if (!cursorKey) {
+      console.error('No se encontró cursor. OutBinds:', result.outBinds);
+      throw new Error('No se encontró cursor en la respuesta del procedimiento');
+    }
+
+    console.log('Cursor encontrado en:', cursorKey);
+    
+    const cursor = result.outBinds[cursorKey];
+    const rows = await cursor.getRows(1000); // Obtener hasta 1000 filas
     await cursor.close();
 
     res.json({
@@ -48,31 +67,7 @@ async function reporteConParametros(req, res, next, nombreSP, binds) {
       data: rows
     });
   } catch (err) {
-    next(err);
-  } finally {
-    if (connection) await connection.close();
-  }
-}
-
-// Función genérica para reportes CON parámetros
-async function reporteConParametros(req, res, next, nombreSP, binds) {
-  let connection;
-  try {
-    connection = await db.getConnection();
-    const result = await connection.execute(
-      `BEGIN ${nombreSP}; END;`,
-      binds
-    );
-
-    const cursor = result.outBinds.cursor_out;
-    const rows = await cursor.getRows();
-    await cursor.close();
-
-    res.json({
-      ok: true,
-      data: rows
-    });
-  } catch (err) {
+    console.error('Error en reporteConParametros:', err);
     next(err);
   } finally {
     if (connection) await connection.close();
@@ -85,17 +80,12 @@ async function reporteConParametros(req, res, next, nombreSP, binds) {
 async function contenedoresActivos(req, res, next) {
   const estado = req.query.estado || null;
   
-  if (!estado) {
-    // Sin filtro de estado
-    reporteGenerico(req, res, next, 'rep_contenedores_activos');
-  } else {
-    // Con filtro de estado
-    const binds = {
-      p_estado: estado,
-      p_cursor: { dir: db.oracledb.BIND_OUT, type: db.oracledb.CURSOR }
-    };
-    reporteConParametros(req, res, next, 'rep_contenedores_activos(:p_estado, :p_cursor)', binds);
-  }
+  const binds = {
+    p_estado: estado,
+    p_cursor: { dir: db.oracledb.BIND_OUT, type: db.oracledb.CURSOR }
+  };
+  
+  reporteConParametros(req, res, next, 'rep_contenedores_activos(:p_estado, :p_cursor)', binds);
 }
 
 // ============================================================
@@ -104,17 +94,12 @@ async function contenedoresActivos(req, res, next) {
 async function rankingClientes(req, res, next) {
   const limite = req.query.limite ? parseInt(req.query.limite) : null;
   
-  if (!limite) {
-    // Sin límite, mostrar todos
-    reporteGenerico(req, res, next, 'rep_ranking_clientes');
-  } else {
-    // Con límite de TOP N
-    const binds = {
-      p_limite: limite,
-      p_cursor: { dir: db.oracledb.BIND_OUT, type: db.oracledb.CURSOR }
-    };
-    reporteConParametros(req, res, next, 'rep_ranking_clientes(:p_limite, :p_cursor)', binds);
-  }
+  const binds = {
+    p_limite: limite,
+    p_cursor: { dir: db.oracledb.BIND_OUT, type: db.oracledb.CURSOR }
+  };
+  
+  reporteConParametros(req, res, next, 'rep_ranking_clientes(:p_limite, :p_cursor)', binds);
 }
 
 // ============================================================
@@ -148,18 +133,13 @@ async function productosMensuales(req, res, next) {
   const mes = req.query.mes ? parseInt(req.query.mes) : null;
   const anio = req.query.anio ? parseInt(req.query.anio) : null;
   
-  if (!mes && !anio) {
-    // Sin parámetros, usar mes actual
-    reporteGenerico(req, res, next, 'rep_productos_mensuales');
-  } else {
-    // Con mes y año específicos
-    const binds = {
-      p_mes: mes,
-      p_anio: anio,
-      p_cursor: { dir: db.oracledb.BIND_OUT, type: db.oracledb.CURSOR }
-    };
-    reporteConParametros(req, res, next, 'rep_productos_mensuales(:p_mes, :p_anio, :p_cursor)', binds);
-  }
+  const binds = {
+    p_mes: mes,
+    p_anio: anio,
+    p_cursor: { dir: db.oracledb.BIND_OUT, type: db.oracledb.CURSOR }
+  };
+  
+  reporteConParametros(req, res, next, 'rep_productos_mensuales(:p_mes, :p_anio, :p_cursor)', binds);
 }
 
 // ============================================================
@@ -218,17 +198,12 @@ async function estadoPuerto(req, res, next) {
 async function contenedoresAbandonados(req, res, next) {
   const diasAntiguedad = req.query.dias_antiguedad ? parseInt(req.query.dias_antiguedad) : null;
   
-  if (!diasAntiguedad) {
-    // Sin filtro de antigüedad
-    reporteGenerico(req, res, next, 'rep_contenedores_abandonados');
-  } else {
-    // Con filtro de antigüedad
-    const binds = {
-      p_dias_antiguedad: diasAntiguedad,
-      p_cursor: { dir: db.oracledb.BIND_OUT, type: db.oracledb.CURSOR }
-    };
-    reporteConParametros(req, res, next, 'rep_contenedores_abandonados(:p_dias_antiguedad, :p_cursor)', binds);
-  }
+  const binds = {
+    p_dias_antiguedad: diasAntiguedad,
+    p_cursor: { dir: db.oracledb.BIND_OUT, type: db.oracledb.CURSOR }
+  };
+  
+  reporteConParametros(req, res, next, 'rep_contenedores_abandonados(:p_dias_antiguedad, :p_cursor)', binds);
 }
 
 // ============================================================
@@ -238,18 +213,13 @@ async function alertasDetalle(req, res, next) {
   const estadoAlerta = req.query.estado_alerta || null;
   const diasRecientes = req.query.dias_recientes ? parseInt(req.query.dias_recientes) : null;
   
-  if (!estadoAlerta && !diasRecientes) {
-    // Sin filtros
-    reporteGenerico(req, res, next, 'rep_alertas_detalle');
-  } else {
-    // Con filtros
-    const binds = {
-      p_estado_alerta: estadoAlerta,
-      p_dias_recientes: diasRecientes,
-      p_cursor: { dir: db.oracledb.BIND_OUT, type: db.oracledb.CURSOR }
-    };
-    reporteConParametros(req, res, next, 'rep_alertas_detalle(:p_estado_alerta, :p_dias_recientes, :p_cursor)', binds);
-  }
+  const binds = {
+    p_estado_alerta: estadoAlerta,
+    p_dias_recientes: diasRecientes,
+    p_cursor: { dir: db.oracledb.BIND_OUT, type: db.oracledb.CURSOR }
+  };
+  
+  reporteConParametros(req, res, next, 'rep_alertas_detalle(:p_estado_alerta, :p_dias_recientes, :p_cursor)', binds);
 }
 
 // ============================================================
@@ -271,20 +241,15 @@ async function auditoriaUsuarios(req, res, next) {
     fechaHasta = new Date(req.query.fecha_hasta);
   }
   
-  if (!usuario && !accion && !fechaDesde && !fechaHasta) {
-    // Sin filtros, usar defaults del procedimiento
-    reporteGenerico(req, res, next, 'rep_auditoria_usuarios');
-  } else {
-    // Con filtros
-    const binds = {
-      p_usuario: usuario,
-      p_accion: accion,
-      p_fecha_desde: fechaDesde,
-      p_fecha_hasta: fechaHasta,
-      p_cursor: { dir: db.oracledb.BIND_OUT, type: db.oracledb.CURSOR }
-    };
-    reporteConParametros(req, res, next, 'rep_auditoria_usuarios(:p_usuario, :p_accion, :p_fecha_desde, :p_fecha_hasta, :p_cursor)', binds);
-  }
+  const binds = {
+    p_usuario: usuario,
+    p_accion: accion,
+    p_fecha_desde: fechaDesde,
+    p_fecha_hasta: fechaHasta,
+    p_cursor: { dir: db.oracledb.BIND_OUT, type: db.oracledb.CURSOR }
+  };
+  
+  reporteConParametros(req, res, next, 'rep_auditoria_usuarios(:p_usuario, :p_accion, :p_fecha_desde, :p_fecha_hasta, :p_cursor)', binds);
 }
 
 module.exports = {
